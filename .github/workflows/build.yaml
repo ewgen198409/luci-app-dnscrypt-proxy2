@@ -12,6 +12,10 @@ jobs:
         with:
           path: luci-app-dnscrypt-proxy2
 
+      - name: Fix feeds.conf
+        run: |
+          sed -i '/src-link luci/d' feeds.conf || true
+
       - name: Build
         uses: openwrt/gh-action-sdk@v10
         env:
