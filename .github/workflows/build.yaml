@@ -56,7 +56,7 @@ jobs:
       - name: Build package
         run: |
           cd openwrt-sdk
-          make package/luci-app-dnscrypt-proxy2/compile -j$(nproc)
+          make package/luci-app-dnscrypt-proxy2/compile V=sc
 
       - name: Find built package
         run: |
