@@ -39,8 +39,10 @@ jobs:
       - name: Prepare feeds
         run: |
           cd openwrt-sdk
-          # Add luci feed
-          echo "src-git luci https://github.com/openwrt/luci.git;master" >> feeds.conf.default
+          # Check if luci feed already exists
+          if ! grep -q "src-git luci" feeds.conf.default; then
+            echo "src-git luci https://github.com/openwrt/luci.git;master" >> feeds.conf.default
+          fi
           ./scripts/feeds update luci
           ./scripts/feeds install -a
 
