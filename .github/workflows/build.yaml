@@ -10,18 +10,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          path: package
+          path: luci-app-dnscrypt-proxy2
 
       - name: Build
         uses: openwrt/gh-action-sdk@v10
         env:
           ARCH: aarch64_generic
-          FEEDNAME: luci-app-dnscrypt-proxy2
+          FEEDNAME: luci
           V: s
           EXTRA_PACKAGES: luci-base
 
       - name: Move packages
-        run: cp -v bin/packages/*/packages/* . 2>/dev/null || true
+        run: |
+          find bin -name "luci-app-dnscrypt-proxy2*.ipk" -exec cp {} . \;
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
