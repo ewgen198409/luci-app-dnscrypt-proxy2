@@ -10,40 +10,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          path: luci-app-dnscrypt-proxy2
-
-      - name: Download SDK
-        run: |
-          SDK_URL="https://downloads.openwrt.org/releases/24.10.5/targets/armsr/armv8/openwrt-sdk-24.10.5-armsr-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-          wget -q -O sdk.tar.zst "$SDK_URL"
-          tar -xf sdk.tar.zst
-          mv openwrt-sdk-* openwrt-sdk
-
-      - name: Setup SDK
-        run: |
-          cd openwrt-sdk
-          # Copy package first
-          mkdir -p package/luci-app-dnscrypt-proxy2
-          cp ../luci-app-dnscrypt-proxy2/Makefile package/luci-app-dnscrypt-proxy2/
-          cp -r ../luci-app-dnscrypt-proxy2/htdocs ../luci-app-dnscrypt-proxy2/root package/luci-app-dnscrypt-proxy2/
-          
-          # Copy and run setup
-          cp ../luci-app-dnscrypt-proxy2/setup.sh .
-          chmod +x setup.sh
-          bash setup.sh
-
+          path: package
 
       - name: Build
-        run: |
-          cd openwrt-sdk
-          echo "CONFIG_PACKAGE_luci-app-dnscrypt-proxy2=y" >> .config
-          make defconfig
-          make package/luci-app-dnscrypt-proxy2/compile V=s
+        uses: openwrt/gh-action-sdk@v10
+        env:
+          ARCH: aarch64_generic
+          FEEDNAME: packages
+          V: s
+          EXTRA_PACKAGES: luci-base
+
+      - name: Move packages
+        run: cp -v bin/packages/*/packages/* . 2>/dev/null || true
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: luci-app-dnscrypt-proxy2
           path: |
-            openwrt-sdk/bin/packages/*/luci-app-dnscrypt-proxy2*.ipk
+            luci-app-dnscrypt-proxy2*.ipk
           retention-days: 1
