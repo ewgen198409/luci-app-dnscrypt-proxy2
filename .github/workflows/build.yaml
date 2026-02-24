@@ -56,12 +56,17 @@ jobs:
       - name: Configure package
         run: |
           cd openwrt-sdk
+          # Check if TOPDIR is correct
+          echo "TOPDIR: $(pwd)"
+          ls -la include/
+          echo "CONFIG_PACKAGE_luCI_APP_LUCI_APP_DNSCrypt_Proxy2=m" >> .config
           echo "CONFIG_PACKAGE_luci-app-dnscrypt-proxy2=y" >> .config
           make defconfig
 
       - name: Build package
         run: |
           cd openwrt-sdk
+          make clean
           make package/luci-app-dnscrypt-proxy2/compile V=sc
 
       - name: Find built package
