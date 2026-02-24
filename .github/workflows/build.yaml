@@ -10,16 +10,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Create feeds.conf
+        run: |
+          cat > feeds.conf << 'EOF'
+          src-git packages https://github.com/openwrt/packages.git;openwrt-24.10
+          src-git luci https://github.com/openwrt/luci.git;openwrt-24.10
+          src-link luci-app-dnscrypt-proxy2 .
+          EOF
+
       - name: Build
         uses: openwrt/gh-action-sdk@v10
         env:
           ARCH: aarch64_generic
-          FEEDNAME: luci
-          INDEX: 1
+          FEEDNAME: luci-app-dnscrypt-proxy2
           V: s
-
-      - name: Move created packages
-        run: cp -v bin/packages/aarch64_generic/luci/* . || true
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -27,5 +31,4 @@ jobs:
           name: luci-app-dnscrypt-proxy2
           path: |
             luci-app-dnscrypt-proxy2*.ipk
-            *.ipk
           retention-days: 1
