@@ -1,0 +1,97 @@
+name: Build Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      openwrt_version:
+        description: 'OpenWrt Version'
+        required: true
+        default: '24.10'
+        type: string
+      target:
+        description: 'Target (e.g., x86_64, aarch64_cortex-a72)'
+        required: true
+        default: 'x86_64'
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download OpenWrt SDK
+        env:
+          OPENWRT_VERSION: ${{ github.inputs.openwrt_version }}
+          TARGET: ${{ github.inputs.target }}
+        run: |
+          SDK_URL="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/x86_64/openwrt-sdk-${OPENWRT_VERSION}-x86_64_gcc-13.3.0_musl.Linux-x86_64.tar.xz"
+          if [[ "$TARGET" != "x86_64" ]]; then
+            SDK_URL="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/${TARGET}/openwrt-sdk-${OPENWRT_VERSION}-${TARGET}_gcc-13.3.0_musl.Linux-x86_64.tar.xz"
+          fi
+          echo "Downloading SDK from: $SDK_URL"
+          wget -q -O sdk.tar.xz "$SDK_URL"
+          tar -xJf sdk.tar.xz
+          mv openwrt-sdk-* openwrt-sdk
+
+      - name: Prepare package
+        run: |
+          cd openwrt-sdk
+          mkdir -p package/luci-app-dnscrypt-proxy2
+          cp -r ../* package/luci-app-dnscrypt-proxy2/
+          rm -rf package/luci-app-dnscrypt-proxy2/.git
+
+      - name: Update feeds
+        run: |
+          cd openwrt-sdk
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Configure package
+        run: |
+          cd openwrt-sdk
+          echo "CONFIG_PACKAGE_luci-app-dnscrypt-proxy2=y" >> .config
+          make defconfig
+
+      - name: Build package
+        run: |
+          cd openwrt-sdk
+          make package/luci-app-dnscrypt-proxy2/compile -j$(nproc)
+
+      - name: Find built package
+        run: |
+          find openwrt-sdk -name "luci-app-dnscrypt-proxy2*.ipk" -type f
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: luci-app-dnscrypt-proxy2-${{ github.inputs.target }}
+          path: |
+            openwrt-sdk/bin/packages/**/luci-app-dnscrypt-proxy2*.ipk
+          retention-days: 30
+
+      - name: Create Git Tag
+        id: create_tag
+        run: |
+          VERSION="${{ github.inputs.openwrt_version }}-${{ github.inputs.target }}"
+          TAG_NAME="v${VERSION}"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git tag $TAG_NAME
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+
+      - name: Push Tag
+        run: git push origin ${{ steps.create_tag.outputs.tag_name }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.create_tag.outputs.tag_name }}
+          files: |
+            openwrt-sdk/bin/packages/**/luci-app-dnscrypt-proxy2*.ipk
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
