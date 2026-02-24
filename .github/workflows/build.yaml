@@ -16,7 +16,7 @@ jobs:
         uses: openwrt/gh-action-sdk@v10
         env:
           ARCH: aarch64_generic
-          FEEDNAME: packages
+          FEEDNAME: luci-app-dnscrypt-proxy2
           V: s
           EXTRA_PACKAGES: luci-base
 
