@@ -39,8 +39,7 @@ jobs:
         run: |
           cd openwrt-sdk
           mkdir -p package/luci-app-dnscrypt-proxy2
-          cp -r ../* package/luci-app-dnscrypt-proxy2/
-          rm -rf package/luci-app-dnscrypt-proxy2/.git
+          cp -r ../Makefile ../htdocs ../root package/luci-app-dnscrypt-proxy2/
 
       - name: Update feeds
         run: |
