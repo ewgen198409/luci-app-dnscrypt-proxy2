@@ -18,7 +18,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -26,15 +25,31 @@ jobs:
         run: |
           OPENWRT_VERSION="${{ github.event.inputs.openwrt_version }}"
           TARGET="${{ github.event.inputs.target }}"
-          SDK_URL="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/x86_64/openwrt-sdk-${OPENWRT_VERSION}-x86_64_gcc-13.3.0_musl.Linux-x86_64.tar.xz"
-          if [[ "$TARGET" != "x86_64" ]]; then
-            SDK_URL="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/${TARGET}/openwrt-sdk-${OPENWRT_VERSION}-${TARGET}_gcc-13.3.0_musl.Linux-x86_64.tar.xz"
-          fi
+          
+          case "$TARGET" in
+            x86_64)
+              SDK_PATH="x86_64"
+              SDK_NAME="x86_64"
+              ;;
+            aarch64_cortex-a53)
+              SDK_PATH="aarch64/cortex-a53"
+              SDK_NAME="aarch64_cortex-a53"
+              ;;
+            aarch64_cortex-a72)
+              SDK_PATH="aarch64/cortex-a72"
+              SDK_NAME="aarch64_cortex-a72"
+              ;;
+            *)
+              SDK_PATH="$TARGET"
+              SDK_NAME="$TARGET"
+              ;;
+          esac
+          
+          SDK_URL="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/${SDK_PATH}/openwrt-sdk-${OPENWRT_VERSION}-${SDK_NAME}_gcc-13.3.0_musl.Linux-x86_64.tar.xz"
           echo "Downloading SDK from: $SDK_URL"
           wget -q -O sdk.tar.xz "$SDK_URL"
           tar -xJf sdk.tar.xz
           mv openwrt-sdk-* openwrt-sdk
-
 
       - name: Prepare package
         run: |
@@ -94,6 +109,3 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-
