@@ -19,18 +19,19 @@ jobs:
           tar -xf sdk.tar.zst
           mv openwrt-sdk-* openwrt-sdk
 
-      - name: Copy package
-        run: |
-          mkdir -p openwrt-sdk/package/luci-app-dnscrypt-proxy2
-          cp luci-app-dnscrypt-proxy2/Makefile openwrt-sdk/package/luci-app-dnscrypt-proxy2/
-          cp -r luci-app-dnscrypt-proxy2/htdocs luci-app-dnscrypt-proxy2/root openwrt-sdk/package/luci-app-dnscrypt-proxy2/
-
       - name: Setup SDK
         run: |
           cd openwrt-sdk
+          # Copy package first
+          mkdir -p package/luci-app-dnscrypt-proxy2
+          cp ../luci-app-dnscrypt-proxy2/Makefile package/luci-app-dnscrypt-proxy2/
+          cp -r ../luci-app-dnscrypt-proxy2/htdocs ../luci-app-dnscrypt-proxy2/root package/luci-app-dnscrypt-proxy2/
+          
+          # Copy and run setup
           cp ../luci-app-dnscrypt-proxy2/setup.sh .
           chmod +x setup.sh
           bash setup.sh
+
 
       - name: Build
         run: |
