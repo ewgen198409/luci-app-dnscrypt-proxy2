@@ -12,17 +12,10 @@ jobs:
         with:
           path: luci-app-dnscrypt-proxy2
 
-      - name: Fix feeds.conf
-        run: |
-          # Remove duplicate feeds
-          sed -i '/^src-git luci/d' feeds.conf || true
-          sed -i '/^src-link luci/d' feeds.conf || true
-
       - name: Build
         uses: openwrt/gh-action-sdk@v10
         env:
           ARCH: aarch64_generic
-          FEEDNAME: luci
           V: s
           EXTRA_PACKAGES: luci-base
 
