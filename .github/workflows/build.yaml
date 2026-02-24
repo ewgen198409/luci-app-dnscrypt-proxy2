@@ -52,6 +52,11 @@ jobs:
           BRANCH: ${{ matrix.branch }}
           CCACHE_DIR: '/builder/.ccache'
         run: |
+          # Run SDK setup if exists
+          if [ -f ./setup.sh ]; then
+            bash ./setup.sh
+          fi
+          
           PKGDIR=$GITHUB_WORKSPACE/luci-app-dnscrypt-proxy2
           MKFN=$PKGDIR/Makefile
           PKGVER=$( grep -s '^PKG_VERSION:=.*' $MKFN | cut -d'=' -f2 )
@@ -65,6 +70,7 @@ jobs:
           echo "PKGVER=$PKGVER" >> $GITHUB_ENV
           echo "pkgver=$PKGVER" >> $GITHUB_OUTPUT
           echo "status=success" >> $GITHUB_OUTPUT
+
 
       - name: Build package
         id: build
