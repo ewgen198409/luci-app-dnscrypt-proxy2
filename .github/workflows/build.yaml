@@ -28,7 +28,6 @@ jobs:
       - name: Build
         run: |
           cd openwrt-sdk
-          # Check include directory
-          ls -la include/
-          # Source package.mk manually
+          echo "CONFIG_PACKAGE_luci-app-dnscrypt-proxy2=y" >> .config
+          make defconfig
           make package/luci-app-dnscrypt-proxy2/compile V=s
