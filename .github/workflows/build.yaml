@@ -34,15 +34,8 @@ jobs:
 
       - name: Setup
         run: |
-          # Install zstd if not available
-          if ! command -v zstd >/dev/null 2>&1; then
-            apt-get update && apt-get install -y zstd
-          fi
-          
-          # Run setup script
-          bash ./setup.sh
-          
           ls -lh
+
 
       - name: Init package
         id: init
