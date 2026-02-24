@@ -21,7 +21,8 @@ jobs:
 
       - name: Move packages
         run: |
-          find bin -name "luci-app-dnscrypt-proxy2*.ipk" -exec cp {} . \;
+          find . -name "luci-app-dnscrypt-proxy2*.ipk" -exec cp {} . \;
+          ls -la *.ipk 2>/dev/null || true
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
