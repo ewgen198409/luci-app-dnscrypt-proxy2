@@ -35,6 +35,7 @@ jobs:
       - name: Setup
         run: |
           ls -lh
+          ls -la
 
 
       - name: Init package
