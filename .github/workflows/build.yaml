@@ -2,101 +2,30 @@ name: Build Package
 
 on:
   workflow_dispatch:
-    inputs:
-      test_build:
-        description: 'Test build'
-        required: false
-        default: 'false'
-        type: choice
-        options:
-          - 'true'
-          - 'false'
-
-env:
-  REPO_URL: https://github.com/ewgen198409/luci-app-dnscrypt-proxy2
-  REPO_LNK: ewgen198409/luci-app-dnscrypt-proxy2
-  TEST_BUILD: ${{ github.event.inputs.test_build == 'true' }}
-  BUILD_ROOT: /builder
-  ARCH: aarch64_cortex-a53
 
 jobs:
   build:
+    name: Build for aarch64_generic
     runs-on: ubuntu-latest
-    container:
-      image: openwrt/sdk:aarch64_cortex-a53
-      options: --user root
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.REPO_LNK }}
-          path: luci-app-dnscrypt-proxy2
+      - uses: actions/checkout@v4
 
-      - name: Setup
-        run: |
-          ls -lh
-          ls -la
+      - name: Build
+        uses: openwrt/gh-action-sdk@v10
+        env:
+          ARCH: aarch64_generic
+          FEEDNAME: luci
+          INDEX: 1
+          V: s
 
+      - name: Move created packages
+        run: cp -v bin/packages/aarch64_generic/luci/* . || true
 
-      - name: Init package
-        id: init
-        run: |
-          PKGDIR=$GITHUB_WORKSPACE/luci-app-dnscrypt-proxy2
-          MKFN=$PKGDIR/Makefile
-          PKGVER=$( grep -s '^PKG_VERSION:=.*' $MKFN | cut -d'=' -f2 )
-          echo "PKG_VERSION = $PKGVER"
-          
-          # Copy package to SDK
-          mkdir -p ./package
-          cp -vr $PKGDIR ./package/luci-app-dnscrypt-proxy2/
-          
-          echo "PKGVER=$PKGVER" >> $GITHUB_ENV
-          echo "pkgver=$PKGVER" >> $GITHUB_OUTPUT
-          echo "status=success" >> $GITHUB_OUTPUT
-
-      - name: Build package
-        id: build
-        if: steps.init.outputs.status == 'success'
-        run: |
-          if [ "$TEST_BUILD" = "false" ]; then
-            make defconfig
-            sed -i 's/CONFIG_LUCI_JSMIN=y/CONFIG_LUCI_JSMIN=n/g' .config
-            make package/luci-app-dnscrypt-proxy2/compile V=s
-
-          else
-            mkdir -p ./bin/packages/aarch64_cortex-a53/base
-            touch ./bin/packages/aarch64_cortex-a53/base/luci-app-dnscrypt-proxy2_1.0-1_all.ipk
-          fi
-          
-          echo "status=success" >> $GITHUB_OUTPUT
-
-      - name: Upload packages
-        if: steps.build.outcome == 'success'
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          path: ./bin/packages/aarch64_cortex-a53/base/luci-app-dnscrypt-proxy2*.ipk
-          name: luci-app-dnscrypt-proxy2,${{ env.ARCH }}
-          if-no-files-found: error
-
-  release:
-    needs: build
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: luci-app-dnscrypt-proxy2,*
-          path: packages
-
-      - name: Create Release
-        if: env.TEST_BUILD == 'false'
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ needs.build.outputs.pkgver }}
-          name: luci-app-dnscrypt-proxy2 v${{ needs.build.outputs.pkgver }}
-          files: packages/**/*.ipk
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: luci-app-dnscrypt-proxy2
+          path: |
+            luci-app-dnscrypt-proxy2*.ipk
+            *.ipk
+          retention-days: 1
