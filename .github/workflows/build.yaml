@@ -38,14 +38,14 @@ jobs:
 
       - name: Prepare package
         run: |
-          # Create package directory first
-          mkdir -p openwrt-sdk/package/luci-app-dnscrypt-proxy2
-          
-          # Create symlinks instead of copying
-          ln -s "$(pwd)/Makefile" openwrt-sdk/package/luci-app-dnscrypt-proxy2/Makefile
-          ln -s "$(pwd)/htdocs" openwrt-sdk/package/luci-app-dnscrypt-proxy2/htdocs
-          ln -s "$(pwd)/root" openwrt-sdk/package/luci-app-dnscrypt-proxy2/root
-          ls -la openwrt-sdk/package/
+          # Copy package to SDK package directory
+          REPO_DIR="$(pwd)"
+          cd openwrt-sdk
+          mkdir -p package/luci-app-dnscrypt-proxy2
+          cp "$REPO_DIR/Makefile" package/luci-app-dnscrypt-proxy2/
+          cp -r "$REPO_DIR/htdocs" package/luci-app-dnscrypt-proxy2/
+          cp -r "$REPO_DIR/root" package/luci-app-dnscrypt-proxy2/
+          ls -la package/luci-app-dnscrypt-proxy2/
 
       - name: Update feeds
         run: |
