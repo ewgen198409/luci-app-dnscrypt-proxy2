@@ -1,0 +1,13 @@
+{
+	"admin/services/dnscrypt-proxy2": {
+		"title": "DNSCrypt-Proxy 2",
+		"order": 50,
+		"action": {
+			"type": "view",
+			"path": "dnscrypt-proxy2/dnscrypt-proxy2"
+		},
+		"depends": {
+			"acl": [ "luci-app-dnscrypt-proxy2" ]
+		}
+	}
+}

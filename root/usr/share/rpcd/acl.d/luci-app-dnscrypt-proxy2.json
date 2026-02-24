@@ -1,0 +1,28 @@
+{
+	"luci-app-dnscrypt-proxy2": {
+		"description": "Grant access to DNSCrypt-Proxy 2 configuration",
+		"ubus_rpc": {
+			"*": true
+		},
+		"read": {
+			"uci": [ "dnscrypt-proxy", "dhcp" ],
+			"ubus": {
+				"*": true
+			},
+			"file": {
+				"/etc/dnscrypt-proxy2/*": [ "read" ]
+			}
+		},
+		"write": {
+			"uci": [ "dnscrypt-proxy", "dhcp" ],
+			"ubus": {
+				"*": true
+			},
+			"file": {
+				"/etc/dnscrypt-proxy2/*": [ "write" ],
+				"/usr/sbin/dnscrypt-proxy *": [ "exec" ],
+				"/etc/init.d/dnscrypt-proxy": [ "exec" ]
+			}
+		}
+	}
+}
