@@ -10,25 +10,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create feeds.conf
+      - name: Download SDK
         run: |
-          cat > feeds.conf << 'EOF'
-          src-git packages https://github.com/openwrt/packages.git;openwrt-24.10
-          src-git luci https://github.com/openwrt/luci.git;openwrt-24.10
-          src-link luci-app-dnscrypt-proxy2 .
-          EOF
+          SDK_URL="https://downloads.openwrt.org/releases/24.10.5/targets/armsr/armv8/openwrt-sdk-24.10.5-armsr-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+          wget -q -O sdk.tar.zst "$SDK_URL"
+          tar -xf sdk.tar.zst
+          mv openwrt-sdk-* openwrt-sdk
+
+      - name: Copy package
+        run: |
+          mkdir -p openwrt-sdk/package/luci-app-dnscrypt-proxy2
+          cp -r Makefile htdocs root openwrt-sdk/package/luci-app-dnscrypt-proxy2/
 
       - name: Build
-        uses: openwrt/gh-action-sdk@v10
-        env:
-          ARCH: aarch64_generic
-          FEEDNAME: luci-app-dnscrypt-proxy2
-          V: s
+        run: |
+          cd openwrt-sdk
+          ./scripts/feeds update -a || true
+          ./scripts/feeds install -a || true
+          echo "CONFIG_PACKAGE_luci-app-dnscrypt-proxy2=y" >> .config
+          make defconfig
+          make package/luci-app-dnscrypt-proxy2/compile V=s
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: luci-app-dnscrypt-proxy2
           path: |
-            luci-app-dnscrypt-proxy2*.ipk
+            openwrt-sdk/bin/packages/*/luci-app-dnscrypt-proxy2*.ipk
           retention-days: 1
