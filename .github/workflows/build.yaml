@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: luci-app-dnscrypt-proxy2
 
       - name: Download SDK
         run: |
@@ -16,14 +18,19 @@ jobs:
           wget -q -O sdk.tar.zst "$SDK_URL"
           tar -xf sdk.tar.zst
           mv openwrt-sdk-* openwrt-sdk
-          ls -la openwrt-sdk/
 
       - name: Copy package
         run: |
           mkdir -p openwrt-sdk/package/luci-app-dnscrypt-proxy2
-          cp Makefile openwrt-sdk/package/luci-app-dnscrypt-proxy2/
-          cp -r htdocs root openwrt-sdk/package/luci-app-dnscrypt-proxy2/
-          ls -la openwrt-sdk/package/luci-app-dnscrypt-proxy2/
+          cp luci-app-dnscrypt-proxy2/Makefile openwrt-sdk/package/luci-app-dnscrypt-proxy2/
+          cp -r luci-app-dnscrypt-proxy2/htdocs luci-app-dnscrypt-proxy2/root openwrt-sdk/package/luci-app-dnscrypt-proxy2/
+
+      - name: Setup SDK
+        run: |
+          cd openwrt-sdk
+          cp ../luci-app-dnscrypt-proxy2/setup.sh .
+          chmod +x setup.sh
+          bash setup.sh
 
       - name: Build
         run: |
@@ -31,3 +38,11 @@ jobs:
           echo "CONFIG_PACKAGE_luci-app-dnscrypt-proxy2=y" >> .config
           make defconfig
           make package/luci-app-dnscrypt-proxy2/compile V=s
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: luci-app-dnscrypt-proxy2
+          path: |
+            openwrt-sdk/bin/packages/*/luci-app-dnscrypt-proxy2*.ipk
+          retention-days: 1
