@@ -26,7 +26,10 @@ jobs:
           OPENWRT_VERSION="${{ github.event.inputs.openwrt_version }}"
           TARGET="${{ github.event.inputs.target }}"
           
-          SDK_URL="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/${TARGET}/openwrt-sdk-${OPENWRT_VERSION}-${TARGET}_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+          # Convert target format: armsr-armv8 -> armsr/armv8
+          TARGET_PATH="${TARGET//-//}"
+          
+          SDK_URL="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/${TARGET_PATH}/openwrt-sdk-${OPENWRT_VERSION}-${TARGET}_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
           echo "Downloading SDK from: $SDK_URL"
           wget -q -O sdk.tar.zst "$SDK_URL"
           tar -xf sdk.tar.zst
