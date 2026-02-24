@@ -33,15 +33,17 @@ jobs:
           echo "Downloading SDK from: $SDK_URL"
           wget -q -O sdk.tar.zst "$SDK_URL"
           tar -xf sdk.tar.zst
-          mv openwrt-sdk-* openwrt-sdk
+          SDK_DIR=$(ls -d openwrt-sdk-*)
+          mv "$SDK_DIR" openwrt-sdk
 
       - name: Prepare package
         run: |
-          cd openwrt-sdk
-          mkdir -p package/luci-app-dnscrypt-proxy2
-          cp Makefile package/luci-app-dnscrypt-proxy2/
-          cp -r htdocs package/luci-app-dnscrypt-proxy2/
-          cp -r root package/luci-app-dnscrypt-proxy2/
+          pwd
+          ls -la
+          mkdir -p openwrt-sdk/package/luci-app-dnscrypt-proxy2
+          cp Makefile openwrt-sdk/package/luci-app-dnscrypt-proxy2/
+          cp -r htdocs openwrt-sdk/package/luci-app-dnscrypt-proxy2/
+          cp -r root openwrt-sdk/package/luci-app-dnscrypt-proxy2/
 
       - name: Update feeds
         run: |
