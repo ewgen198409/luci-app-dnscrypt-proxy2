@@ -2,6 +2,8 @@
 
 LuCI interface for DNSCrypt-Proxy 2 on OpenWrt
 
+[![Downloads](https://img.shields.io/github/downloads/ewgen198409/luci-app-dnscrypt-proxy2/total?style=flat-square)](https://github.com/ewgen198409/luci-app-dnscrypt-proxy2/releases)
+
 ## Description
 
 This package provides a user-friendly web interface (LuCI) for managing DNSCrypt-Proxy 2 on OpenWrt routers. It allows you to configure all major DNSCrypt-Proxy settings without editing configuration files manually.
