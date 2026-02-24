@@ -16,25 +16,19 @@ jobs:
           wget -q -O sdk.tar.zst "$SDK_URL"
           tar -xf sdk.tar.zst
           mv openwrt-sdk-* openwrt-sdk
+          ls -la openwrt-sdk/
 
       - name: Copy package
         run: |
           mkdir -p openwrt-sdk/package/luci-app-dnscrypt-proxy2
-          cp -r Makefile htdocs root openwrt-sdk/package/luci-app-dnscrypt-proxy2/
+          cp Makefile openwrt-sdk/package/luci-app-dnscrypt-proxy2/
+          cp -r htdocs root openwrt-sdk/package/luci-app-dnscrypt-proxy2/
+          ls -la openwrt-sdk/package/luci-app-dnscrypt-proxy2/
 
       - name: Build
         run: |
           cd openwrt-sdk
-          ./scripts/feeds update -a || true
-          ./scripts/feeds install -a || true
-          echo "CONFIG_PACKAGE_luci-app-dnscrypt-proxy2=y" >> .config
-          make defconfig
+          # Check include directory
+          ls -la include/
+          # Source package.mk manually
           make package/luci-app-dnscrypt-proxy2/compile V=s
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: luci-app-dnscrypt-proxy2
-          path: |
-            openwrt-sdk/bin/packages/*/luci-app-dnscrypt-proxy2*.ipk
-          retention-days: 1
