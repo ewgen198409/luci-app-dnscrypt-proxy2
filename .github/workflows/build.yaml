@@ -22,10 +22,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download OpenWrt SDK
-        env:
-          OPENWRT_VERSION: ${{ github.inputs.openwrt_version }}
-          TARGET: ${{ github.inputs.target }}
         run: |
+          OPENWRT_VERSION="${{ github.event.inputs.openwrt_version }}"
+          TARGET="${{ github.event.inputs.target }}"
           SDK_URL="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/x86_64/openwrt-sdk-${OPENWRT_VERSION}-x86_64_gcc-13.3.0_musl.Linux-x86_64.tar.xz"
           if [[ "$TARGET" != "x86_64" ]]; then
             SDK_URL="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/${TARGET}/openwrt-sdk-${OPENWRT_VERSION}-${TARGET}_gcc-13.3.0_musl.Linux-x86_64.tar.xz"
@@ -34,6 +33,7 @@ jobs:
           wget -q -O sdk.tar.xz "$SDK_URL"
           tar -xJf sdk.tar.xz
           mv openwrt-sdk-* openwrt-sdk
+
 
       - name: Prepare package
         run: |
@@ -66,7 +66,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: luci-app-dnscrypt-proxy2-${{ github.inputs.target }}
+          name: luci-app-dnscrypt-proxy2-${{ github.event.inputs.target }}
           path: |
             openwrt-sdk/bin/packages/**/luci-app-dnscrypt-proxy2*.ipk
           retention-days: 30
@@ -74,7 +74,7 @@ jobs:
       - name: Create Git Tag
         id: create_tag
         run: |
-          VERSION="${{ github.inputs.openwrt_version }}-${{ github.inputs.target }}"
+          VERSION="${{ github.event.inputs.openwrt_version }}-${{ github.event.inputs.target }}"
           TAG_NAME="v${VERSION}"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -93,5 +93,6 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
 
