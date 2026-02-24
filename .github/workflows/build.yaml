@@ -23,11 +23,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch: [openwrt-24.10.5]
         arch: [aarch64_cortex-a53]
 
     container:
-      image: openwrt/sdk:${{ matrix.arch }}-${{ matrix.branch }}
+      image: openwrt/sdk:${{ matrix.arch }}
+
       options: --user root
     steps:
       - name: Checkout
