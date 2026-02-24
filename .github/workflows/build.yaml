@@ -56,9 +56,11 @@ jobs:
           MKFN=$PKGDIR/Makefile
           PKGVER=$( grep -s '^PKG_VERSION:=.*' $MKFN | cut -d'=' -f2 )
           echo "PKG_VERSION = $PKGVER"
-          cp -vr $PKGDIR/Makefile ./package/luci-app-dnscrypt-proxy2/
-          cp -vr $PKGDIR/htdocs ./package/luci-app-dnscrypt-proxy2/
-          cp -vr $PKGDIR/root ./package/luci-app-dnscrypt-proxy2/
+          mkdir -p ./package/luci-app-dnscrypt-proxy2
+          cp -v $PKGDIR/Makefile ./package/luci-app-dnscrypt-proxy2/
+          cp -rv $PKGDIR/htdocs ./package/luci-app-dnscrypt-proxy2/
+          cp -rv $PKGDIR/root ./package/luci-app-dnscrypt-proxy2/
+
           
           echo "PKGVER=$PKGVER" >> $GITHUB_ENV
           echo "pkgver=$PKGVER" >> $GITHUB_OUTPUT
