@@ -48,17 +48,6 @@ jobs:
           # Copy package to SDK
           mkdir -p ./package
           cp -vr $PKGDIR ./package/luci-app-dnscrypt-proxy2/
-
-
-          mv feeds.conf.default feeds.conf
-          sed -i -e 's|base.*\.git|base https://github.com/openwrt/openwrt.git|' feeds.conf
-          sed -i -e 's|packages.*\.git|packages https://github.com/openwrt/packages.git|' feeds.conf
-          sed -i -e 's|luci.*\.git|luci https://github.com/openwrt/luci.git|' feeds.conf
-          
-          if [ "$TEST_BUILD" = "false" ]; then
-            ./scripts/feeds update base packages luci
-            ./scripts/feeds install -a
-          fi
           
           echo "PKGVER=$PKGVER" >> $GITHUB_ENV
           echo "pkgver=$PKGVER" >> $GITHUB_OUTPUT
