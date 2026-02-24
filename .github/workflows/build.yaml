@@ -3,92 +3,113 @@ name: Build Package
 on:
   workflow_dispatch:
     inputs:
-      openwrt_version:
-        description: 'OpenWrt Version'
-        required: true
-        default: '24.10.5'
-        type: string
-      target:
-        description: 'Target (e.g., x86-64, armsr-armv8)'
-        required: true
-        default: 'armsr-armv8'
-        type: string
+      test_build:
+        description: 'Test build'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+env:
+  REPO_URL: https://github.com/ewgen198409/luci-app-dnscrypt-proxy2
+  REPO_LNK: ewgen198409/luci-app-dnscrypt-proxy2
+  TEST_BUILD: ${{ github.event.inputs.test_build == 'true' }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: [openwrt-24.10]
+        arch: [aarch64_cortex-a53, x86_64]
+    container:
+      image: openwrt/sdk:${{ matrix.arch }}-${{ matrix.branch }}
+      options: --user root
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          repository: ${{ env.REPO_LNK }}
+          path: luci-app-dnscrypt-proxy2
 
-      - name: Download OpenWrt SDK
+      - name: Setup ccache
+        uses: actions/cache@v4
+        with:
+          path: '/builder/.ccache'
+          key: ccache-${{ matrix.arch }}-${{ matrix.branch }}-${{ github.run_id }}
+          restore-keys: |
+            ccache-${{ matrix.arch }}-${{ matrix.branch }}-
+
+      - name: Init package
+        id: init
+        working-directory: '/builder'
+        env:
+          ARCH: ${{ matrix.arch }}
+          BRANCH: ${{ matrix.branch }}
+          CCACHE_DIR: '/builder/.ccache'
         run: |
-          OPENWRT_VERSION="${{ github.event.inputs.openwrt_version }}"
-          TARGET="${{ github.event.inputs.target }}"
+          PKGDIR=$GITHUB_WORKSPACE/luci-app-dnscrypt-proxy2
+          MKFN=$PKGDIR/Makefile
+          PKGVER=$( grep -s '^PKG_VERSION:=.*' $MKFN | cut -d'=' -f2 )
+          echo "PKG_VERSION = $PKGVER"
+          cp -vr $PKGDIR/Makefile ./package/luci-app-dnscrypt-proxy2/
+          cp -vr $PKGDIR/htdocs ./package/luci-app-dnscrypt-proxy2/
+          cp -vr $PKGDIR/root ./package/luci-app-dnscrypt-proxy2/
           
-          # Convert target format: armsr-armv8 -> armsr/armv8
-          TARGET_PATH="${TARGET//-//}"
-          
-          SDK_URL="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/${TARGET_PATH}/openwrt-sdk-${OPENWRT_VERSION}-${TARGET}_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-          echo "Downloading SDK from: $SDK_URL"
-          wget -q -O sdk.tar.zst "$SDK_URL"
-          tar -xf sdk.tar.zst
-          SDK_DIR=$(ls -d openwrt-sdk-*)
-          mv "$SDK_DIR" openwrt-sdk
-
-      - name: Prepare feeds
-        run: |
-          cd openwrt-sdk
-          # Check if luci feed already exists
-          if ! grep -q "src-git luci" feeds.conf.default; then
-            echo "src-git luci https://github.com/openwrt/luci.git;master" >> feeds.conf.default
-          fi
-          ./scripts/feeds update luci
-          ./scripts/feeds install -a
-
-      - name: Configure package
-        run: |
-          cd openwrt-sdk
-          echo "CONFIG_PACKAGE_luci=y" >> .config
-          echo "CONFIG_PACKAGE_luci-app-dnscrypt-proxy2=y" >> .config
-          make defconfig
+          echo "PKGVER=$PKGVER" >> $GITHUB_ENV
+          echo "pkgver=$PKGVER" >> $GITHUB_OUTPUT
+          echo "status=success" >> $GITHUB_OUTPUT
 
       - name: Build package
+        id: build
+        if: steps.init.outputs.status == 'success'
+        working-directory: '/builder'
+        env:
+          ARCH: ${{ matrix.arch }}
+          BRANCH: ${{ matrix.branch }}
+          CCACHE_DIR: '/builder/.ccache'
         run: |
-          cd openwrt-sdk
-          make package/luci-app-dnscrypt-proxy2/compile V=sc
+          if [ "$TEST_BUILD" = "false" ]; then
+            make defconfig
+            make package/luci-app-dnscrypt-proxy2/compile V=s
+          else
+            OUT_DIR=./bin/packages/aarch64_cortex-a53/base
+            mkdir -p $OUT_DIR
+            touch $OUT_DIR/luci-app-dnscrypt-proxy2_1.0-1_all.ipk
+          fi
+          
+          echo "status=success" >> $GITHUB_OUTPUT
 
-      - name: Find built package
-        run: |
-          find openwrt-sdk -name "luci-app-dnscrypt-proxy2*.ipk" -type f
-
-      - name: Upload artifact
+      - name: Upload packages
+        if: steps.build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: luci-app-dnscrypt-proxy2-${{ github.event.inputs.target }}
-          path: |
-            openwrt-sdk/bin/packages/**/luci-app-dnscrypt-proxy2*.ipk
-          retention-days: 30
+          path: ./bin/packages/${{ matrix.arch }}/base/luci-app-dnscrypt-proxy2*.ipk
+          name: luci-app-dnscrypt-proxy2,${{ matrix.arch }}
+          if-no-files-found: error
 
-      - name: Create Git Tag
-        id: create_tag
-        run: |
-          VERSION="${{ github.event.inputs.openwrt_version }}-${{ github.event.inputs.target }}"
-          TAG_NAME="v${VERSION}"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git tag $TAG_NAME
-          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+  release:
+    needs: build
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: luci-app-dnscrypt-proxy2,*
+          path: packages
 
-      - name: Push Tag
-        run: git push origin ${{ steps.create_tag.outputs.tag_name }}
-
-      - name: Create GitHub Release
+      - name: Create Release
+        if: env.TEST_BUILD == 'false'
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.create_tag.outputs.tag_name }}
-          files: |
-            openwrt-sdk/bin/packages/**/luci-app-dnscrypt-proxy2*.ipk
+          tag_name: v${{ needs.build.outputs.pkgver }}
+          name: luci-app-dnscrypt-proxy2 v${{ needs.build.outputs.pkgver }}
+          files: packages/**/*.ipk
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
