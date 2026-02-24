@@ -36,37 +36,24 @@ jobs:
           SDK_DIR=$(ls -d openwrt-sdk-*)
           mv "$SDK_DIR" openwrt-sdk
 
-      - name: Prepare package
-        run: |
-          # Copy package to SDK package directory
-          REPO_DIR="$(pwd)"
-          cd openwrt-sdk
-          mkdir -p package/luci-app-dnscrypt-proxy2
-          cp "$REPO_DIR/Makefile" package/luci-app-dnscrypt-proxy2/
-          cp -r "$REPO_DIR/htdocs" package/luci-app-dnscrypt-proxy2/
-          cp -r "$REPO_DIR/root" package/luci-app-dnscrypt-proxy2/
-          ls -la package/luci-app-dnscrypt-proxy2/
-
-      - name: Update feeds
+      - name: Prepare feeds
         run: |
           cd openwrt-sdk
-          ./scripts/feeds update -a
+          # Add luci feed
+          echo "src-git luci https://github.com/openwrt/luci.git;master" >> feeds.conf.default
+          ./scripts/feeds update luci
           ./scripts/feeds install -a
 
       - name: Configure package
         run: |
           cd openwrt-sdk
-          # Check if TOPDIR is correct
-          echo "TOPDIR: $(pwd)"
-          ls -la include/
-          echo "CONFIG_PACKAGE_luCI_APP_LUCI_APP_DNSCrypt_Proxy2=m" >> .config
+          echo "CONFIG_PACKAGE_luci=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-dnscrypt-proxy2=y" >> .config
           make defconfig
 
       - name: Build package
         run: |
           cd openwrt-sdk
-          make clean
           make package/luci-app-dnscrypt-proxy2/compile V=sc
 
       - name: Find built package
