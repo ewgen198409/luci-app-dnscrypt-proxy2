@@ -9,15 +9,16 @@ on:
         default: '24.10'
         type: string
       target:
-        description: 'Target (e.g., x86_64, aarch64_cortex-a72)'
+        description: 'Target (e.g., x86_64, aarch64_cortex-a53)'
         required: true
-        default: 'x86_64'
+        default: 'aarch64_cortex-a53'
         type: string
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
