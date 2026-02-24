@@ -38,7 +38,10 @@ jobs:
 
       - name: Prepare package
         run: |
-          # Create symlink instead of copying
+          # Create package directory first
+          mkdir -p openwrt-sdk/package/luci-app-dnscrypt-proxy2
+          
+          # Create symlinks instead of copying
           ln -s "$(pwd)/Makefile" openwrt-sdk/package/luci-app-dnscrypt-proxy2/Makefile
           ln -s "$(pwd)/htdocs" openwrt-sdk/package/luci-app-dnscrypt-proxy2/htdocs
           ln -s "$(pwd)/root" openwrt-sdk/package/luci-app-dnscrypt-proxy2/root
