@@ -6,12 +6,12 @@ on:
       openwrt_version:
         description: 'OpenWrt Version'
         required: true
-        default: '24.10'
+        default: '24.10.5'
         type: string
       target:
-        description: 'Target (e.g., x86_64, aarch64_cortex-a53)'
+        description: 'Target (e.g., x86-64, armsr-armv8)'
         required: true
-        default: 'aarch64_cortex-a53'
+        default: 'armsr-armv8'
         type: string
 
 jobs:
@@ -26,29 +26,10 @@ jobs:
           OPENWRT_VERSION="${{ github.event.inputs.openwrt_version }}"
           TARGET="${{ github.event.inputs.target }}"
           
-          case "$TARGET" in
-            x86_64)
-              SDK_PATH="x86_64"
-              SDK_NAME="x86_64"
-              ;;
-            aarch64_cortex-a53)
-              SDK_PATH="aarch64/cortex-a53"
-              SDK_NAME="aarch64_cortex-a53"
-              ;;
-            aarch64_cortex-a72)
-              SDK_PATH="aarch64/cortex-a72"
-              SDK_NAME="aarch64_cortex-a72"
-              ;;
-            *)
-              SDK_PATH="$TARGET"
-              SDK_NAME="$TARGET"
-              ;;
-          esac
-          
-          SDK_URL="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/${SDK_PATH}/openwrt-sdk-${OPENWRT_VERSION}-${SDK_NAME}_gcc-13.3.0_musl.Linux-x86_64.tar.xz"
+          SDK_URL="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/${TARGET}/openwrt-sdk-${OPENWRT_VERSION}-${TARGET}_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
           echo "Downloading SDK from: $SDK_URL"
-          wget -q -O sdk.tar.xz "$SDK_URL"
-          tar -xJf sdk.tar.xz
+          wget -q -O sdk.tar.zst "$SDK_URL"
+          tar -xf sdk.tar.zst
           mv openwrt-sdk-* openwrt-sdk
 
       - name: Prepare package
