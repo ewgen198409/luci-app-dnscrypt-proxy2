@@ -9,8 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: luci-app-dnscrypt-proxy2
 
       - name: Build
         uses: openwrt/gh-action-sdk@v10
@@ -19,15 +17,14 @@ jobs:
           V: s
           EXTRA_PACKAGES: luci-base
 
-      - name: Move packages
+      - name: List built packages
         run: |
-          find . -name "luci-app-dnscrypt-proxy2*.ipk" -exec cp {} . \;
-          ls -la *.ipk 2>/dev/null || true
+          find . -name "*.ipk" -type f 2>/dev/null | head -20
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: luci-app-dnscrypt-proxy2
           path: |
-            luci-app-dnscrypt-proxy2*.ipk
+            **/*.ipk
           retention-days: 1
