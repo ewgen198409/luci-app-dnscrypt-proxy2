@@ -2,6 +2,12 @@ name: Build Package
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version'
+        required: true
+        default: '1.0'
+        type: string
 
 jobs:
   build:
@@ -24,10 +30,29 @@ jobs:
           find . -name "luci-app-dnscrypt-proxy2*.ipk" -exec cp {} . \;
           ls -la *.ipk 2>/dev/null || true
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Create tag
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          TAG_NAME="v$VERSION"
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add -A
+          git commit -m "Release version $VERSION" || echo "No changes to commit"
+          git tag -f $TAG_NAME
+          git push -f origin $TAG_NAME
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
         with:
-          name: luci-app-dnscrypt-proxy2
-          path: |
+          tag_name: ${{ env.TAG_NAME }}
+          name: Release ${{ env.TAG_NAME }}
+          body: |
+            ## luci-app-dnscrypt-proxy2 v${{ github.event.inputs.version }}
+            OpenWrt LuCI приложение для DNSCrypt-Proxy 2
+          files: |
             luci-app-dnscrypt-proxy2*.ipk
-          retention-days: 1
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
