@@ -23,7 +23,6 @@ jobs:
         env:
           ARCH: aarch64_generic
           V: s
-          EXTRA_PACKAGES: luci-base
 
       - name: Find packages
         id: packages
