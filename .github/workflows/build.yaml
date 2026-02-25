@@ -26,10 +26,11 @@ jobs:
           EXTRA_PACKAGES: luci-base
 
       - name: Find packages
+        id: packages
         run: |
-          find . -name "luci-app-dnscrypt-proxy2*.ipk" -type f
-          ls -la luci-app-dnscrypt-proxy2*.ipk 2>/dev/null || echo "No packages found in root"
-          find bin -name "*.ipk" -type f 2>/dev/null || true
+          FILES=$(find . -name "luci-app-dnscrypt-proxy2*.ipk" | tr '\n' ',')
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+          echo "Found files: $FILES"
 
       - name: Create tag
         run: |
@@ -51,8 +52,7 @@ jobs:
           body: |
             ## luci-app-dnscrypt-proxy2 v${{ github.event.inputs.version }}
             OpenWrt LuCI приложение для DNSCrypt-Proxy 2
-          files: |
-            luci-app-dnscrypt-proxy2*.ipk
+          files: ${{ steps.packages.outputs.files }}
           draft: false
           prerelease: false
         env:
