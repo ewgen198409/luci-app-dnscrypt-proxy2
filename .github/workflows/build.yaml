@@ -25,10 +25,11 @@ jobs:
           V: s
           EXTRA_PACKAGES: luci-base
 
-      - name: Move packages
+      - name: Find packages
         run: |
-          find . -name "luci-app-dnscrypt-proxy2*.ipk" -exec cp {} . \;
-          ls -la *.ipk 2>/dev/null || true
+          find . -name "luci-app-dnscrypt-proxy2*.ipk" -type f
+          ls -la luci-app-dnscrypt-proxy2*.ipk 2>/dev/null || echo "No packages found in root"
+          find bin -name "*.ipk" -type f 2>/dev/null || true
 
       - name: Create tag
         run: |
