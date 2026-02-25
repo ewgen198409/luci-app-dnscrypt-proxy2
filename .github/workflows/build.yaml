@@ -8,14 +8,13 @@ jobs:
     name: Build for aarch64_generic
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          path: luci-app-dnscrypt-proxy2
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Get version
         id: version
         run: |
-          VERSION=$(grep "^PKG_VERSION:=" luci-app-dnscrypt-proxy2/Makefile | cut -d'=' -f2)
+          VERSION=$(grep "^PKG_VERSION:=" Makefile | cut -d'=' -f2)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building version: $VERSION"
 
