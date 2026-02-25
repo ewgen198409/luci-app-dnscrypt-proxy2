@@ -8,51 +8,26 @@ jobs:
     name: Build for aarch64_generic
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Get version
-        id: version
-        run: |
-          VERSION=$(grep "^PKG_VERSION:=" Makefile | cut -d'=' -f2)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Building version: $VERSION"
+      - uses: actions/checkout@v4
+        with:
+          path: luci-app-dnscrypt-proxy2
 
       - name: Build
         uses: openwrt/gh-action-sdk@v10
         env:
           ARCH: aarch64_generic
           V: s
+          EXTRA_PACKAGES: luci-base
 
-      - name: Find packages
-        id: packages
+      - name: Move packages
         run: |
-          FILES=$(find . -name "luci-app-dnscrypt-proxy2*.ipk" | tr '\n' ',')
-          echo "files=$FILES" >> $GITHUB_OUTPUT
-          echo "Found files: $FILES"
+          find . -name "luci-app-dnscrypt-proxy2*.ipk" -exec cp {} . \;
+          ls -la *.ipk 2>/dev/null || true
 
-      - name: Create tag
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          TAG_NAME="v$VERSION"
-          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add -A
-          git commit -m "Release version $VERSION" || echo "No changes to commit"
-          git tag -f $TAG_NAME
-          git push -f origin $TAG_NAME
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ env.TAG_NAME }}
-          name: Release ${{ env.TAG_NAME }}
-          body: |
-            ## luci-app-dnscrypt-proxy2 v${{ steps.version.outputs.version }}
-            OpenWrt LuCI приложение для DNSCrypt-Proxy 2
-          files: ${{ steps.packages.outputs.files }}
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: luci-app-dnscrypt-proxy2
+          path: |
+            luci-app-dnscrypt-proxy2*.ipk
+          retention-days: 1
