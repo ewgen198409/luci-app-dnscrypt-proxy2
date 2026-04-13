@@ -1,6 +1,6 @@
 # luci-app-dnscrypt-proxy2
 
-LuCI interface for DNSCrypt-Proxy 2 on OpenWrt
+LuCI interface for DNSCrypt-Proxy 2 on OpenWrt 24.10
 
 [![Downloads](https://img.shields.io/github/downloads/ewgen198409/luci-app-dnscrypt-proxy2/total?style=flat-square)](https://github.com/ewgen198409/luci-app-dnscrypt-proxy2/releases)
 
