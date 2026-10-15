@@ -28,8 +28,8 @@ jobs:
         uses: openwrt/gh-action-sdk@v10
         env:
           ARCH: ${{ matrix.sdk }}
+          PACKAGES: luci-app-dnscrypt-proxy2
           V: s
-          EXTRA_PACKAGES: luci-base
 
       - name: List built packages
         run: |
