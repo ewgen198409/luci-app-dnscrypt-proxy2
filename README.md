@@ -1,6 +1,6 @@
 # luci-app-dnscrypt-proxy2
 
-LuCI interface for DNSCrypt-Proxy 2 on OpenWrt 24.10
+LuCI interface for DNSCrypt-Proxy 2 on OpenWrt 24.10 and 25.12
 
 [![Downloads](https://img.shields.io/github/downloads/ewgen198409/luci-app-dnscrypt-proxy2/total?style=flat-square)](https://github.com/ewgen198409/luci-app-dnscrypt-proxy2/releases)
 
@@ -30,30 +30,32 @@ This package provides a user-friendly web interface (LuCI) for managing DNSCrypt
 
 ## Requirements
 
-- OpenWrt 24.x or newer
+- OpenWrt 24.10 or 25.12
 - LuCI web interface
 - dnscrypt-proxy2 package installed
 
 ## Installation
 
-### From OpenWrt Package Feed
+### Download a Release Package
+
+Download the package for your OpenWrt version from [GitHub Releases](https://github.com/ewgen198409/luci-app-dnscrypt-proxy2/releases). OpenWrt 24.10 uses IPK packages; OpenWrt 25.12 uses APK packages.
+
+Copy the downloaded package to the router:
 
 ```bash
-opkg update
-opkg install luci-app-dnscrypt-proxy2
+scp <package-file> root@192.168.1.1:/tmp/
 ```
 
-### Manual Installation
+Install it with the package manager for your OpenWrt version:
 
-1. Transfer the IPK file to your router:
+OpenWrt 24.10:
 ```bash
-scp luci-app-dnscrypt-proxy2_1.0-r1_all.ipk root@192.168.1.1:/tmp/
+opkg install /tmp/<package-file>.ipk
 ```
 
-2. Install the package:
+OpenWrt 25.12:
 ```bash
-ssh root@192.168.1.1
-opkg install /tmp/luci-app-dnscrypt-proxy2_1.0-r1_all.ipk
+apk add --allow-untrusted /tmp/<package-file>.apk
 ```
 
 ## Usage
@@ -78,29 +80,28 @@ Use the **Redirect DNS** button to configure your router to use DNSCrypt-Proxy:
 
 ## Building from Source
 
+### GitHub Actions
+
+Start **Build Package** manually from the repository's Actions page. It builds packages for OpenWrt 24.10 and 25.12, then publishes both packages as assets in a GitHub Release. The release tag is generated from `PKG_VERSION` and `PKG_RELEASE` in `Makefile` (currently `v2.0-2`). If that release already exists, it is not overwritten; increment `PKG_RELEASE` or update `PKG_VERSION` before publishing another release.
+
 ### Using OpenWrt SDK
 
 ```bash
-# Clone or download the SDK
+# From the SDK directory
 cd openwrt-sdk-*
 
-# Copy package to packages directory
-cp -r luci-app-dnscrypt-proxy2 package/
-
-# Configure
-make menuconfig
-
-# Select: LuCI → Applications → luci-app-dnscrypt-proxy2
-
-# Build
+# Add this package to the SDK and build it
+git clone https://github.com/ewgen198409/luci-app-dnscrypt-proxy2.git package/luci-app-dnscrypt-proxy2
 make package/luci-app-dnscrypt-proxy2/compile
 ```
 
 ### Build Output
 
-The compiled IPK will be located at:
-```
-bin/packages/aarch64_generic/base/luci-app-dnscrypt-proxy2_1.0-r1_all.ipk
+The output format depends on the OpenWrt version:
+
+```text
+OpenWrt 24.10: luci-app-dnscrypt-proxy2_2.0-r2_all.ipk
+OpenWrt 25.12: luci-app-dnscrypt-proxy2-2.0-r2.apk
 ```
 
 ## Screenshots
