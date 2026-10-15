@@ -32,17 +32,17 @@ jobs:
           PACKAGES: luci-app-dnscrypt-proxy2
           V: s
 
-      - name: List built packages
+      - name: Collect LuCI package
         run: |
-          find . -type f \( -name "*.ipk" -o -name "*.apk" \) 2>/dev/null | head -20
+          mkdir -p dist
+          find bin -type f \( -name "luci-app-dnscrypt-proxy2*.ipk" -o -name "luci-app-dnscrypt-proxy2*.apk" \) -exec cp -v {} dist/ \;
+          test "$(find dist -type f | wc -l)" -gt 0 || { echo "::error::luci-app-dnscrypt-proxy2 package was not produced"; exit 1; }
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: luci-app-dnscrypt-proxy2-${{ matrix.version }}
-          path: |
-            **/*.ipk
-            **/*.apk
+          path: dist/*
           retention-days: 1
 
   release:
