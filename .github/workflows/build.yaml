@@ -33,7 +33,7 @@ jobs:
 
       - name: List built packages
         run: |
-          find . -name "*.ipk" -type f 2>/dev/null | head -20
+          find . -type f \( -name "*.ipk" -o -name "*.apk" \) 2>/dev/null | head -20
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -41,4 +41,5 @@ jobs:
           name: luci-app-dnscrypt-proxy2-${{ matrix.version }}
           path: |
             **/*.ipk
+            **/*.apk
           retention-days: 1
