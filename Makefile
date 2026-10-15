@@ -16,7 +16,7 @@ PKG_MAINTAINER:=OpenWrt Community
 LUCI_TITLE:=LuCI support for DNSCrypt-Proxy 2
 LUCI_DEPENDS:=+luci-base +dnscrypt-proxy2
 
-include $(TOPDIR)/package.mk
+include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)
   SECTION:=luci
