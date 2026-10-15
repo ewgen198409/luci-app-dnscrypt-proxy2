@@ -5,8 +5,16 @@ on:
 
 jobs:
   build:
-    name: Build for aarch64_generic
+    name: Build for aarch64_generic ${{ matrix.version }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - version: "24.10"
+            sdk: aarch64_generic-24.10.0
+          - version: "25.12"
+            sdk: aarch64_generic-25.12-SNAPSHOT
     steps:
       - uses: actions/checkout@v4
 
@@ -19,7 +27,7 @@ jobs:
       - name: Build
         uses: openwrt/gh-action-sdk@v10
         env:
-          ARCH: aarch64_generic
+          ARCH: ${{ matrix.sdk }}
           V: s
           EXTRA_PACKAGES: luci-base
 
@@ -30,7 +38,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: luci-app-dnscrypt-proxy2
+          name: luci-app-dnscrypt-proxy2-${{ matrix.version }}
           path: |
             **/*.ipk
           retention-days: 1
